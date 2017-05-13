@@ -522,6 +522,161 @@ class CompressorX extends WebSharks\HtmlCompressor\Core
         return $html; // With possible compression having been applied here.
     }
 
+    protected function maybeCompressCombineFooterJs($html)
+    {
+        $html = (string) $html; // Force string value.
+
+        if (isset($this->options['compress_combine_footer_js'])) {
+            if (!$this->options['compress_combine_footer_js']) {
+                $disabled = true; // Disabled flag.
+            }
+        }
+        if (!$html || !empty($disabled)) {
+            goto finale; // Nothing to do.
+        }
+        if (($footer_scripts_frag = $this->getFooterScriptsFrag($html)) /* e.g. <!-- footer-scripts --><!-- footer-scripts --> */) {
+            if (($js_tag_frags = $this->getJsTagFrags($footer_scripts_frag)) && ($js_parts = $this->compileJsTagFragsIntoParts($js_tag_frags, 'foot', true))) {
+                $js_tag_frags_all_compiled = $this->compileKeyElementsDeep($js_tag_frags, 'all');
+                $html                      = $this->replaceOnce($footer_scripts_frag['all'], '%%htmlc-footer-scripts%%', $html);
+                $cleaned_footer_scripts    = $this->replaceOnce($js_tag_frags_all_compiled, '', $footer_scripts_frag['contents']);
+
+                $compressed_js_tags = []; // Initialize.
+
+                foreach ($js_parts as $_js_part) {
+                    if (isset($_js_part['exclude_frag'], $js_tag_frags[$_js_part['exclude_frag']]['all'])) {
+                        $compressed_js_tags[] = $js_tag_frags[$_js_part['exclude_frag']]['all'];
+                    } else {
+                        $compressed_js_tags[] = $_js_part['tag'];
+                    }
+                } // unset($_js_part); // Housekeeping.
+
+                $compressed_js_tags             = implode("\n", $compressed_js_tags);
+                $compressed_footer_script_parts = [$footer_scripts_frag['open_tag'], $cleaned_footer_scripts, $compressed_js_tags, $footer_scripts_frag['closing_tag']];
+                $html                           = $this->replaceOnce('%%htmlc-footer-scripts%%', implode("\n", $compressed_footer_script_parts), $html);
+
+            }
+        }
+        finale: // Target point; finale/return value.
+
+        if ($html) {
+            $html = trim($html);
+        } // Trim it up now!
+
+        return $html; // With possible compression having been applied here.
+    }
+
+    protected function compileJsTagFragsIntoParts(array $js_tag_frags, $for, $defer = false)
+    {
+        $for               = (string) $for; // Force string.
+        $js_parts          = []; // Initialize.
+        $js_parts_checksum = ''; // Initialize.
+
+        if (!$js_tag_frags) {
+            goto finale; // Nothing to do.
+        }
+        $js_parts_checksum    = $this->getTagFragsChecksum($js_tag_frags);
+        $public_cache_dir     = $this->cacheDir($this::DIR_PUBLIC_TYPE, $js_parts_checksum);
+        $private_cache_dir    = $this->cacheDir($this::DIR_PRIVATE_TYPE, $js_parts_checksum);
+        $public_cache_dir_url = $this->cacheDirUrl($this::DIR_PUBLIC_TYPE, $js_parts_checksum);
+
+        $cache_parts_file          = $js_parts_checksum.'-compressor-parts.js-cache';
+        $cache_parts_file_path     = $private_cache_dir.'/'.$cache_parts_file;
+        $cache_parts_file_path_tmp = $cache_parts_file_path.'.'.uniqid('', true).'.tmp';
+        // Cache file creation is atomic; i.e. tmp file w/ rename.
+
+        $cache_part_file      = '%%code-checksum%%-compressor-part.js';
+        $cache_part_file_path = $public_cache_dir.'/'.$cache_part_file;
+        $cache_part_file_url  = $public_cache_dir_url.'/'.$cache_part_file;
+
+        if (is_file($cache_parts_file_path) && filemtime($cache_parts_file_path) > strtotime('-'.$this->cache_expiration_time)) {
+            if (is_array($cached_parts = unserialize(file_get_contents($cache_parts_file_path)))) {
+                $js_parts = $cached_parts; // Use cached parts.
+                goto finale; // Using the cache; we're all done here.
+            }
+        }
+        $_js_part = 0; // Initialize part counter.
+
+        foreach ($js_tag_frags as $_js_tag_frag_pos => $_js_tag_frag) {
+            if ($_js_tag_frag['exclude']) {
+                if ($_js_tag_frag['script_src'] || $_js_tag_frag['script_js'] || $_js_tag_frag['script_json']) {
+                    if ($js_parts) {
+                        ++$_js_part; // Starts new part.
+                    }
+                    $js_parts[$_js_part]['tag']          = '';
+                    $js_parts[$_js_part]['exclude_frag'] = $_js_tag_frag_pos;
+                    ++$_js_part; // Always indicates a new part in the next iteration.
+                }
+            } elseif ($_js_tag_frag['script_src']) {
+                if (($_js_tag_frag['script_src'] = $this->resolveRelativeUrl($_js_tag_frag['script_src']))) {
+                    if (($_js_code = $this->stripUtf8Bom($this->mustGetUrl($_js_tag_frag['script_src'])))) {
+                        $_js_code = rtrim($_js_code, ';').';';
+
+                        if ($_js_code) {
+                            if (!empty($js_parts[$_js_part]['code'])) {
+                                $js_parts[$_js_part]['code'] .= "\n\n".$_js_code;
+                            } else {
+                                $js_parts[$_js_part]['code'] = $_js_code;
+                            }
+                        }
+                    }
+                }
+            } elseif ($_js_tag_frag['script_js']) {
+                $_js_code = $_js_tag_frag['script_js'];
+                $_js_code = $this->stripUtf8Bom($_js_code);
+                $_js_code = rtrim($_js_code, ';').';';
+
+                if ($_js_code) {
+                    if (!empty($js_parts[$_js_part]['code'])) {
+                        $js_parts[$_js_part]['code'] .= "\n\n".$_js_code;
+                    } else {
+                        $js_parts[$_js_part]['code'] = $_js_code;
+                    }
+                }
+            } elseif ($_js_tag_frag['script_json']) {
+                if ($js_parts) {
+                    ++$_js_part; // Starts new part.
+                }
+                $js_parts[$_js_part]['tag'] = $_js_tag_frag['all'];
+                ++$_js_part; // Always indicates a new part in the next iteration.
+            }
+        } // unset($_js_part, $_js_tag_frag_pos, $_js_tag_frag, $_js_code);
+
+        foreach (array_keys($js_parts = array_values($js_parts)) as $_js_part) {
+            if (!isset($js_parts[$_js_part]['exclude_frag']) && !empty($js_parts[$_js_part]['code'])) {
+                $_js_code    = $js_parts[$_js_part]['code'];
+                $_js_code_cs = md5($_js_code); // Before compression.
+                $_js_code    = $this->maybeCompressJsCode($_js_code);
+
+                $_js_code_path     = str_replace('%%code-checksum%%', $_js_code_cs, $cache_part_file_path);
+                $_js_code_url      = str_replace('%%code-checksum%%', $_js_code_cs, $cache_part_file_url);
+                $_js_code_url      = $this->hook_api->applyFilters('part_url', $_js_code_url, $for);
+                $_js_code_path_tmp = $_js_code_path.'.'.uniqid('', true).'.tmp';
+                // Cache file creation is atomic; e.g. tmp file w/ rename.
+
+                if (!(file_put_contents($_js_code_path_tmp, $_js_code) && rename($_js_code_path_tmp, $_js_code_path))) {
+                    throw new \Exception(sprintf('Unable to cache JS code file: `%1$s`.', $_js_code_path));
+                }
+
+                if (empty($defer)) {
+                    $js_parts[$_js_part]['tag'] = '<script type="text/javascript" src="'.htmlspecialchars($_js_code_url, ENT_QUOTES, 'UTF-8').'"></script>';
+                }
+                else {
+                    $js_parts[$_js_part]['tag'] = '<script type="text/javascript" src="'.htmlspecialchars($_js_code_url, ENT_QUOTES, 'UTF-8').'" defer></script>';
+                }
+
+                unset($js_parts[$_js_part]['code']); // Ditch this; no need to cache this code too.
+            }
+        } // unset($_js_part, $_js_code, $_js_code_cs, $_js_code_path, $_js_code_path_tmp, $_js_code_url);
+
+        if (!(file_put_contents($cache_parts_file_path_tmp, serialize($js_parts)) && rename($cache_parts_file_path_tmp, $cache_parts_file_path))) {
+            throw new \Exception(sprintf('Unable to cache JS parts into: `%1$s`.', $cache_parts_file_path));
+        }
+        finale: // Target point; finale/return value.
+
+        return $js_parts;
+    }
+
+
 
     protected function compressHtml($html)
     {
