@@ -1,0 +1,23 @@
+Changelog for Compressor
+
+1.0.7-beta (13.05.2017)
+==============
+- Add "maybeCompressCombineHeadCss" [CompressorX]
+- Add "maybeCompressCombineFooterCss" [CompressorX]
+
+1.0.5 - 1.0.6-beta (13.05.2017)
+==============
+- Improved process js,css
+
+1.0.4-beta (12.05.2017)
+==============
+- Fix "mustGetUrl" [CompressorX]
+- Fix "currentUrlUri" [CompressorX]
+
+1.0.3-beta (12.05.2017)
+==============
+- Add "inline" css
+
+1.0.2-beta (12.05.2017)
+=============
+- Initial 
