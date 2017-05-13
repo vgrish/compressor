@@ -20,4 +20,4 @@ Changelog for Compressor
 
 1.0.2-beta (12.05.2017)
 =============
-- Initial 
+- Initial
