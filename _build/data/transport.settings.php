@@ -50,15 +50,6 @@ $tmp = array(
     ),*/
 
     //временные
-
-
-    /*
-    'some_setting' => array(
-        'xtype' => 'combo-boolean',
-        'value' => true,
-        'area' => 'compressor_main',
-    ),
-    */
 );
 
 foreach ($tmp as $k => $v) {
