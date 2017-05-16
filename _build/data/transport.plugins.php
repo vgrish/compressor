@@ -7,8 +7,8 @@ $tmp = array(
         'file'        => 'compressor',
         'description' => '',
         'events'      => array(
-            'OnWebPagePrerender' => array('priority' => 100),
-            'OnSiteRefresh'      => array('priority' => 100),
+            'OnWebPagePrerender' => array('priority' => 0),
+            'OnSiteRefresh'      => array('priority' => 0),
         )
     )
 );

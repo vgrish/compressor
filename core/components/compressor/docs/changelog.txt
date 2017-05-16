@@ -1,5 +1,9 @@
 Changelog for Compressor
 
+1.0.9-beta (16.05.2017)
+==============
+- Change plugin priority
+
 1.0.8-beta (13.05.2017)
 ==============
 - Add "compileJsTagFragsIntoParts" [CompressorX]
