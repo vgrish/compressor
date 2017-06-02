@@ -140,6 +140,7 @@ class CompressorX extends WebSharks\HtmlCompressor\Core
 
             if (false === ($css = @file_get_contents($path))) {
             } else {
+                $css = preg_replace("'<html[^>]*?>.*?</html>'si","",$css);
                 $code .= $css;
             }
         }
@@ -160,6 +161,7 @@ class CompressorX extends WebSharks\HtmlCompressor\Core
 
             if (false === ($js = @file_get_contents($path))) {
             } else {
+                $js = preg_replace("'<html[^>]*?>.*?</html>'si","",$js);
                 $code .= $js;
             }
         }
