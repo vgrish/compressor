@@ -1,5 +1,9 @@
 Changelog for Compressor
 
+1.0.11-beta (25.08.2017)
+==============
+- Change "removeDir"
+
 1.0.10-beta (02.06.2017)
 ==============
 - Fix "getCssCode"

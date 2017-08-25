@@ -141,8 +141,7 @@ class Compressor
     public function removeDir($dir)
     {
         $dir = rtrim($dir, '/') . '/';
-        if (is_dir($dir)) {
-            $list = scandir($dir);
+        if (is_dir($dir) AND $list = @scandir($dir)) {
             foreach ($list as $file) {
                 if ($file[0] == '.') {
                     continue;
