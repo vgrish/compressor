@@ -113,7 +113,6 @@ class Compressor
             return $this->initialized[$ctx];
         }
 
-        $this->modx->error->reset();
         $this->config = array_merge($this->config, $scriptProperties, array('ctx' => $ctx));
 
         if ($ctx != 'mgr' AND (!defined('MODX_API_MODE') OR !MODX_API_MODE)) {
