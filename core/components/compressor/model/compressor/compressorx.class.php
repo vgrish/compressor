@@ -726,8 +726,9 @@ class CompressorX extends WebSharks\HtmlCompressor\Core
     protected function mustGetUrl($url)
     {
         $url = (string)$url; // Force string value.
-        $response = $this->remote($url, '', 5, 15, [], '', true, true);
-        if ($response['code'] >= 400) {
+        $response = $this->remote($url, '', 3, 10, [], '', true, true);
+
+        if ($response['code'] >= 400 OR empty($response['code'])) {
             $this->modx->log(modX::LOG_LEVEL_ERROR,
                 '[' . __CLASS__ . ']' . sprintf('HTTP response code: `%1$s`. Unable to get URL: `%2$s`.',
                     $response['code'], $url));
