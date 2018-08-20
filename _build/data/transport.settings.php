@@ -9,6 +9,11 @@ $tmp = array(
         'value' => true,
         'area'  => 'compressor_main',
     ),
+    'compress_resource' => array(
+        'xtype' => 'combo-boolean',
+        'value' => true,
+        'area'  => 'compressor_main',
+    ),
     'compress_html_code' => array(
         'xtype' => 'combo-boolean',
         'value' => true,
@@ -29,7 +34,6 @@ $tmp = array(
         'value' => true,
         'area'  => 'compressor_main',
     ),
-
 
     //временные
 

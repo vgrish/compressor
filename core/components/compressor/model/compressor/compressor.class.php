@@ -15,62 +15,53 @@ class Compressor
 {
     /* @var modX $modx */
     public $modx;
-
+    /** @var Compressor $compressor */
+    public $compressor;
     /** @var mixed|null $namespace */
     public $namespace = 'compressor';
     /** @var string $version */
-    public $version = '1.0.7-beta';
+    public $version = '1.0.13-beta';
 
     /** @var array $config */
     public $config = array();
-
     /** @var array $options */
     public $options = array(
         'cache_dir_public'  => '{assets_path}components/compressor/.~cache/public',
         'cache_dir_private' => '{core_path}cache/default/compressor/.~cache/private',
     );
-
     /** @var array $initialized */
     public $initialized = array();
 
-    /** @var Compressor $compressor */
-    public $compressor;
+    /**
+     * @param       $n
+     * @param array $p
+     */
+    public function __call($n, array $p)
+    {
+        echo __METHOD__ . ' says: ' . $n;
+    }
 
     /**
-     * @param modX  $modx
+     * @param modX $modx
      * @param array $config
      */
     function __construct(modX &$modx, array $config = array())
     {
         $this->modx =& $modx;
 
-        $corePath = $this->getOption('core_path', $config,
-            $this->modx->getOption('core_path', null, MODX_CORE_PATH) . 'components/compressor/');
-
+        $corePath = $this->getOption('core_path', $config, MODX_CORE_PATH . 'components/compressor/');
         $this->config = array_merge(array(
             'namespace' => $this->namespace,
             'corePath'  => $corePath,
             'modelPath' => $corePath . 'model/',
             'showLog'   => false,
         ), $config);
-
-        $this->modx->addPackage('compressor', $this->getOption('modelPath'));
-        $this->modx->lexicon->load('compressor:default');
-    }
-
-    /**
-     * @param       $n
-     * @param array $p
-     */
-    public function __call($n, array$p)
-    {
-        echo __METHOD__ . ' says: ' . $n;
     }
 
     /**
      * @param       $key
      * @param array $config
-     * @param null  $default
+     * @param null $default
      *
      * @return mixed|null
      */
@@ -80,10 +71,10 @@ class Compressor
         if (!empty($key) AND is_string($key)) {
             if ($config != null AND array_key_exists($key, $config)) {
                 $option = $config[$key];
-            } elseif (array_key_exists($key, $this->config)) {
+            } else if (array_key_exists($key, $this->config)) {
                 $option = $this->config[$key];
-            } elseif (array_key_exists("{$this->namespace}_{$key}", $this->modx->config)) {
-                $option = $this->modx->getOption("{$this->namespace}_{$key}");
+            } else if ($key = $this->namespace . '_' . $key AND array_key_exists($key, $this->modx->config)) {
+                $option = $this->modx->getOption($key);
             }
         }
         if ($skipEmpty AND empty($option)) {
@@ -115,7 +106,7 @@ class Compressor
 
         $this->config = array_merge($this->config, $scriptProperties, array('ctx' => $ctx));
 
-        if ($ctx != 'mgr' AND (!defined('MODX_API_MODE') OR !MODX_API_MODE)) {
+        if ($ctx !== 'mgr' AND (!defined('MODX_API_MODE') OR !MODX_API_MODE)) {
 
         }
 
@@ -125,26 +116,15 @@ class Compressor
         return $initialize;
     }
 
-    public function isResourceCompress(modResource $resource)
-    {
-        if ($resource->contentType != 'text/html') {
-            return false;
-        }
-        if ($resource->deleted != 0) {
-            return false;
-        }
-
-        return true;
-    }
-
     public function removeDir($dir)
     {
         $dir = rtrim($dir, '/') . '/';
-        if (is_dir($dir) AND $list = @scandir($dir)) {
+        if (is_dir($dir) AND $list = @scandir($dir, 1)) {
             foreach ($list as $file) {
-                if ($file[0] == '.') {
+                if ($file[0] === '.') {
                     continue;
-                } elseif (is_dir($dir . '/' . $file)) {
+                }
+                if (is_dir($dir . '/' . $file)) {
                     $this->removeDir($dir . '/' . $file);
                 } else {
                     @unlink($dir . '/' . $file);
@@ -167,7 +147,8 @@ class Compressor
             $this->removeDir($dir);
         }
 
-        return true;
+        $this->modx->log(modX::LOG_LEVEL_INFO, $this->modx->lexicon('refresh_default') . ': Compressor');
+
     }
 
     public function getCompressor($options = array())
@@ -188,7 +169,35 @@ class Compressor
         return $this->compressor;
     }
 
-    public function HtmlCompress($html = '', $options = array())
+    public function resourceCompress(modResource $resource, $options = array())
+    {
+        if ($resource->contentType !== 'text/html' OR $resource->deleted) {
+            return $resource->_output;
+        }
+
+        $this->modx->invokeEvent('compressorOnBeforeResourceCompress', array(
+            'compressor' => &$this,
+            'resource'   => &$resource,
+        ));
+
+        $compress = $resource->get('compress');
+        if ($compress === null) {
+            $compress = $this->getOption('compress_resource', null);
+        }
+
+        if ($compress) {
+            $resource->_output = $this->htmlCompress($resource->_output, $options);
+        }
+
+        $this->modx->invokeEvent('compressorOnResourceCompress', array(
+            'compressor' => &$this,
+            'resource'   => &$resource,
+        ));
+
+        return $resource->_output;
+    }
+
+    public function htmlCompress($html = '', $options = array())
     {
         if (!$compressor = $this->getCompressor($options)) {
             return $html;
@@ -242,23 +251,23 @@ class Compressor
             $html
         );
 
-        $html = $compressor->compress($html);
-
-        return $html;
+        return $compressor->compress($html);
     }
 
-    public function CssCompress($css = '', $options = array())
+    public function cssCompress($css = '', $options = array())
     {
-        $cssCompressor = new \WebSharks\CssMinifier\Core($options);
-        $css = $cssCompressor->compress($css);
+        if ($cssCompressor = new \WebSharks\CssMinifier\Core('')) {
+            return $cssCompressor->compress($css);
+        }
 
         return $css;
     }
 
-    public function JsCompress($js = '', $options = array())
+    public function jsCompress($js = '', $options = array())
     {
-        $cssCompressor = new \WebSharks\JsMinifier\Core($options);
-        $js = $cssCompressor->compress($js);
+        if ($jsCompressor = new \WebSharks\JsMinifier\Core('')) {
+            return $jsCompressor->compress($js);
+        }
 
         return $js;
     }

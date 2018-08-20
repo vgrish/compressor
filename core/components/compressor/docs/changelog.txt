@@ -1,5 +1,11 @@
 Changelog for Compressor
 
+1.0.13-beta (20.08.2018)
+==============
+- Add "resourceCompress" [Compressor]
+- Added new events: "compressorOnBeforeResourceCompress", "compressorOnResourceCompress"
+- Added new tags: "<!--noindex--><!--/noindex-->", "<!--nocompress--><!--/nocompress-->"
+
 1.0.12-beta (14.09.2017)
 ==============
 - Change "initialize" [Compressor]

@@ -78,12 +78,12 @@ class CompressorX extends WebSharks\HtmlCompressor\Core
         # CSS Exclusions (If Applicable)
         if (isset($this->options['regex_css_exclusions']) && is_string($this->options['regex_css_exclusions'])) {
             $this->regex_css_exclusions = $this->options['regex_css_exclusions'];
-        } elseif (isset($this->options['css_exclusions']) && is_array($this->options['css_exclusions'])) {
+        } else if (isset($this->options['css_exclusions']) && is_array($this->options['css_exclusions'])) {
             if ($this->options['css_exclusions']) {
                 $this->regex_css_exclusions = '/' . implode('|',
                         $this->pregQuote($this->options['css_exclusions'])) . '/ui';
             }
-        } elseif ($this->default_css_exclusions) {
+        } else if ($this->default_css_exclusions) {
             $this->regex_css_exclusions = '/' . implode('|', $this->pregQuote($this->default_css_exclusions)) . '/ui';
         }
         if ($this->built_in_regex_css_exclusion_patterns && empty($this->options['disable_built_in_css_exclusions'])) {
@@ -93,12 +93,12 @@ class CompressorX extends WebSharks\HtmlCompressor\Core
         # JavaScript Exclusions (If Applicable)
         if (isset($this->options['regex_js_exclusions']) && is_string($this->options['regex_js_exclusions'])) {
             $this->regex_js_exclusions = $this->options['regex_js_exclusions'];
-        } elseif (isset($this->options['js_exclusions']) && is_array($this->options['js_exclusions'])) {
+        } else if (isset($this->options['js_exclusions']) && is_array($this->options['js_exclusions'])) {
             if ($this->options['js_exclusions']) {
                 $this->regex_js_exclusions = '/' . implode('|',
                         $this->pregQuote($this->options['js_exclusions'])) . '/ui';
             }
-        } elseif ($this->default_js_exclusions) {
+        } else if ($this->default_js_exclusions) {
             $this->regex_js_exclusions = '/' . implode('|', $this->pregQuote($this->default_js_exclusions)) . '/ui';
         }
         if ($this->built_in_regex_js_exclusion_patterns && empty($this->options['disable_built_in_js_exclusions'])) {
@@ -140,7 +140,7 @@ class CompressorX extends WebSharks\HtmlCompressor\Core
 
             if (false === ($css = @file_get_contents($path))) {
             } else {
-                $css = preg_replace("'<html[^>]*?>.*?</html>'si","",$css);
+                $css = preg_replace("'<html[^>]*?>.*?</html>'si", "", $css);
                 $code .= $css;
             }
         }
@@ -161,7 +161,7 @@ class CompressorX extends WebSharks\HtmlCompressor\Core
 
             if (false === ($js = @file_get_contents($path))) {
             } else {
-                $js = preg_replace("'<html[^>]*?>.*?</html>'si","",$js);
+                $js = preg_replace("'<html[^>]*?>.*?</html>'si", "", $js);
                 $code .= $js;
             }
         }
@@ -251,9 +251,7 @@ class CompressorX extends WebSharks\HtmlCompressor\Core
         }
 
         if (($head_frag = $this->getHeadFrag($html)) /* No need to get the HTML frag here; we're operating on the `<head>` only. */) {
-            if (($css_tag_frags = $this->getCssTagFrags($head_frag)) && ($css_parts = $this->compileCssTagFragsIntoParts($css_tag_frags,
-                    'head'))
-            ) {
+            if (($css_tag_frags = $this->getCssTagFrags($head_frag)) && ($css_parts = $this->compileCssTagFragsIntoParts($css_tag_frags, 'head'))) {
                 $css_tag_frags_all_compiled = $this->compileKeyElementsDeep($css_tag_frags, 'all');
                 $html = $this->replaceOnce($head_frag['all'], '%%htmlc-head%%', $html);
                 $html = $this->replaceOnce($css_tag_frags_all_compiled, '', $html);
@@ -288,7 +286,7 @@ class CompressorX extends WebSharks\HtmlCompressor\Core
                     $head_frag['open_tag'],
                     $cleaned_head_contents,
                     $compressed_css_tags,
-                    $head_frag['closing_tag']
+                    $head_frag['closing_tag'],
                 ];
 
                 $html = $this->replaceOnce('%%htmlc-head%%', implode("\n", $compressed_head_parts), $html);
@@ -325,9 +323,7 @@ class CompressorX extends WebSharks\HtmlCompressor\Core
         }
 
         if (($html_frag = $this->getHtmlFrag($html)) && ($head_frag = $this->getHeadFrag($html))) {
-            if (($css_tag_frags = $this->getCssTagFrags($html_frag)) && ($css_parts = $this->compileCssTagFragsIntoParts($css_tag_frags,
-                    'head'))
-            ) {
+            if (($css_tag_frags = $this->getCssTagFrags($html_frag)) && ($css_parts = $this->compileCssTagFragsIntoParts($css_tag_frags, 'head'))) {
                 $css_tag_frags_all_compiled = $this->compileKeyElementsDeep($css_tag_frags, 'all');
                 $html = $this->replaceOnce($head_frag['all'], '%%htmlc-head%%', $html);
                 $html = $this->replaceOnce($css_tag_frags_all_compiled, '', $html);
@@ -362,7 +358,7 @@ class CompressorX extends WebSharks\HtmlCompressor\Core
                     $head_frag['open_tag'],
                     $cleaned_head_contents,
                     $compressed_css_tags,
-                    $head_frag['closing_tag']
+                    $head_frag['closing_tag'],
                 ];
 
                 $html = $this->replaceOnce('%%htmlc-head%%', implode("\n", $compressed_head_parts), $html);
@@ -398,9 +394,7 @@ class CompressorX extends WebSharks\HtmlCompressor\Core
             goto finale; // Nothing to do.
         }
         if (($footer_css_frag = $this->getFooterCssFrag($html)) /* e.g. <!-- footer-css --><!-- footer-css --> */) {
-            if (($css_tag_frags = $this->getCssTagFrags($footer_css_frag)) && ($css_parts = $this->compileCssTagFragsIntoParts($css_tag_frags,
-                    'foot'))
-            ) {
+            if (($css_tag_frags = $this->getCssTagFrags($footer_css_frag)) && ($css_parts = $this->compileCssTagFragsIntoParts($css_tag_frags, 'foot'))) {
                 $css_tag_frags_all_compiled = $this->compileKeyElementsDeep($css_tag_frags, 'all');
                 $html = $this->replaceOnce($footer_css_frag['all'], '%%htmlc-footer-css%%', $html);
                 $cleaned_footer_css = $this->replaceOnce($css_tag_frags_all_compiled, '',
@@ -434,7 +428,7 @@ class CompressorX extends WebSharks\HtmlCompressor\Core
                     $footer_css_frag['open_tag'],
                     $cleaned_footer_css,
                     $compressed_css_tags,
-                    $footer_css_frag['closing_tag']
+                    $footer_css_frag['closing_tag'],
                 ];
                 $html = $this->replaceOnce('%%htmlc-footer-css%%', implode("\n", $compressed_footer_css_parts),
                     $html);
@@ -472,9 +466,7 @@ class CompressorX extends WebSharks\HtmlCompressor\Core
             goto finale; // Nothing to do.
         }
         if (($head_frag = $this->getHeadFrag($html)) /* No need to get the HTML frag here; we're operating on the `<head>` only. */) {
-            if (($js_tag_frags = $this->getJsTagFrags($head_frag)) && ($js_parts = $this->compileJsTagFragsIntoParts($js_tag_frags,
-                    'head'))
-            ) {
+            if (($js_tag_frags = $this->getJsTagFrags($head_frag)) && ($js_parts = $this->compileJsTagFragsIntoParts($js_tag_frags, 'head'))) {
                 $js_tag_frags_all_compiled = $this->compileKeyElementsDeep($js_tag_frags, 'all');
                 $html = $this->replaceOnce($head_frag['all'], '%%htmlc-head%%', $html);
                 $cleaned_head_contents = $this->replaceOnce($js_tag_frags_all_compiled, '', $head_frag['contents']);
@@ -510,7 +502,7 @@ class CompressorX extends WebSharks\HtmlCompressor\Core
                     $head_frag['open_tag'],
                     $cleaned_head_contents,
                     $compressed_js_tags,
-                    $head_frag['closing_tag']
+                    $head_frag['closing_tag'],
                 ];
                 $html = $this->replaceOnce('%%htmlc-head%%', implode("\n", $compressed_head_parts), $html);
             }
@@ -526,7 +518,7 @@ class CompressorX extends WebSharks\HtmlCompressor\Core
 
     protected function maybeCompressCombineFooterJs($html)
     {
-        $html = (string) $html; // Force string value.
+        $html = (string)$html; // Force string value.
 
         if (isset($this->options['compress_combine_footer_js'])) {
             if (!$this->options['compress_combine_footer_js']) {
@@ -539,8 +531,8 @@ class CompressorX extends WebSharks\HtmlCompressor\Core
         if (($footer_scripts_frag = $this->getFooterScriptsFrag($html)) /* e.g. <!-- footer-scripts --><!-- footer-scripts --> */) {
             if (($js_tag_frags = $this->getJsTagFrags($footer_scripts_frag)) && ($js_parts = $this->compileJsTagFragsIntoParts($js_tag_frags, 'foot', true))) {
                 $js_tag_frags_all_compiled = $this->compileKeyElementsDeep($js_tag_frags, 'all');
-                $html                      = $this->replaceOnce($footer_scripts_frag['all'], '%%htmlc-footer-scripts%%', $html);
-                $cleaned_footer_scripts    = $this->replaceOnce($js_tag_frags_all_compiled, '', $footer_scripts_frag['contents']);
+                $html = $this->replaceOnce($footer_scripts_frag['all'], '%%htmlc-footer-scripts%%', $html);
+                $cleaned_footer_scripts = $this->replaceOnce($js_tag_frags_all_compiled, '', $footer_scripts_frag['contents']);
 
                 $compressed_js_tags = []; // Initialize.
 
@@ -552,9 +544,9 @@ class CompressorX extends WebSharks\HtmlCompressor\Core
                     }
                 } // unset($_js_part); // Housekeeping.
 
-                $compressed_js_tags             = implode("\n", $compressed_js_tags);
+                $compressed_js_tags = implode("\n", $compressed_js_tags);
                 $compressed_footer_script_parts = [$footer_scripts_frag['open_tag'], $cleaned_footer_scripts, $compressed_js_tags, $footer_scripts_frag['closing_tag']];
-                $html                           = $this->replaceOnce('%%htmlc-footer-scripts%%', implode("\n", $compressed_footer_script_parts), $html);
+                $html = $this->replaceOnce('%%htmlc-footer-scripts%%', implode("\n", $compressed_footer_script_parts), $html);
 
             }
         }
@@ -569,28 +561,28 @@ class CompressorX extends WebSharks\HtmlCompressor\Core
 
     protected function compileJsTagFragsIntoParts(array $js_tag_frags, $for, $defer = false)
     {
-        $for               = (string) $for; // Force string.
-        $js_parts          = []; // Initialize.
+        $for = (string)$for; // Force string.
+        $js_parts = []; // Initialize.
         $js_parts_checksum = ''; // Initialize.
 
         if (!$js_tag_frags) {
             goto finale; // Nothing to do.
         }
-        $js_parts_checksum    = $this->getTagFragsChecksum($js_tag_frags);
-        $public_cache_dir     = $this->cacheDir($this::DIR_PUBLIC_TYPE, $js_parts_checksum);
-        $private_cache_dir    = $this->cacheDir($this::DIR_PRIVATE_TYPE, $js_parts_checksum);
+        $js_parts_checksum = $this->getTagFragsChecksum($js_tag_frags);
+        $public_cache_dir = $this->cacheDir($this::DIR_PUBLIC_TYPE, $js_parts_checksum);
+        $private_cache_dir = $this->cacheDir($this::DIR_PRIVATE_TYPE, $js_parts_checksum);
         $public_cache_dir_url = $this->cacheDirUrl($this::DIR_PUBLIC_TYPE, $js_parts_checksum);
 
-        $cache_parts_file          = $js_parts_checksum.'-compressor-parts.js-cache';
-        $cache_parts_file_path     = $private_cache_dir.'/'.$cache_parts_file;
-        $cache_parts_file_path_tmp = $cache_parts_file_path.'.'.uniqid('', true).'.tmp';
+        $cache_parts_file = $js_parts_checksum . '-compressor-parts.js-cache';
+        $cache_parts_file_path = $private_cache_dir . '/' . $cache_parts_file;
+        $cache_parts_file_path_tmp = $cache_parts_file_path . '.' . uniqid('', true) . '.tmp';
         // Cache file creation is atomic; i.e. tmp file w/ rename.
 
-        $cache_part_file      = '%%code-checksum%%-compressor-part.js';
-        $cache_part_file_path = $public_cache_dir.'/'.$cache_part_file;
-        $cache_part_file_url  = $public_cache_dir_url.'/'.$cache_part_file;
+        $cache_part_file = '%%code-checksum%%-compressor-part.js';
+        $cache_part_file_path = $public_cache_dir . '/' . $cache_part_file;
+        $cache_part_file_url = $public_cache_dir_url . '/' . $cache_part_file;
 
-        if (is_file($cache_parts_file_path) && filemtime($cache_parts_file_path) > strtotime('-'.$this->cache_expiration_time)) {
+        if (is_file($cache_parts_file_path) && filemtime($cache_parts_file_path) > strtotime('-' . $this->cache_expiration_time)) {
             if (is_array($cached_parts = unserialize(file_get_contents($cache_parts_file_path)))) {
                 $js_parts = $cached_parts; // Use cached parts.
                 goto finale; // Using the cache; we're all done here.
@@ -604,37 +596,37 @@ class CompressorX extends WebSharks\HtmlCompressor\Core
                     if ($js_parts) {
                         ++$_js_part; // Starts new part.
                     }
-                    $js_parts[$_js_part]['tag']          = '';
+                    $js_parts[$_js_part]['tag'] = '';
                     $js_parts[$_js_part]['exclude_frag'] = $_js_tag_frag_pos;
                     ++$_js_part; // Always indicates a new part in the next iteration.
                 }
-            } elseif ($_js_tag_frag['script_src']) {
+            } else if ($_js_tag_frag['script_src']) {
                 if (($_js_tag_frag['script_src'] = $this->resolveRelativeUrl($_js_tag_frag['script_src']))) {
                     if (($_js_code = $this->stripUtf8Bom($this->mustGetUrl($_js_tag_frag['script_src'])))) {
-                        $_js_code = rtrim($_js_code, ';').';';
+                        $_js_code = rtrim($_js_code, ';') . ';';
 
                         if ($_js_code) {
                             if (!empty($js_parts[$_js_part]['code'])) {
-                                $js_parts[$_js_part]['code'] .= "\n\n".$_js_code;
+                                $js_parts[$_js_part]['code'] .= "\n\n" . $_js_code;
                             } else {
                                 $js_parts[$_js_part]['code'] = $_js_code;
                             }
                         }
                     }
                 }
-            } elseif ($_js_tag_frag['script_js']) {
+            } else if ($_js_tag_frag['script_js']) {
                 $_js_code = $_js_tag_frag['script_js'];
                 $_js_code = $this->stripUtf8Bom($_js_code);
-                $_js_code = rtrim($_js_code, ';').';';
+                $_js_code = rtrim($_js_code, ';') . ';';
 
                 if ($_js_code) {
                     if (!empty($js_parts[$_js_part]['code'])) {
-                        $js_parts[$_js_part]['code'] .= "\n\n".$_js_code;
+                        $js_parts[$_js_part]['code'] .= "\n\n" . $_js_code;
                     } else {
                         $js_parts[$_js_part]['code'] = $_js_code;
                     }
                 }
-            } elseif ($_js_tag_frag['script_json']) {
+            } else if ($_js_tag_frag['script_json']) {
                 if ($js_parts) {
                     ++$_js_part; // Starts new part.
                 }
@@ -645,14 +637,14 @@ class CompressorX extends WebSharks\HtmlCompressor\Core
 
         foreach (array_keys($js_parts = array_values($js_parts)) as $_js_part) {
             if (!isset($js_parts[$_js_part]['exclude_frag']) && !empty($js_parts[$_js_part]['code'])) {
-                $_js_code    = $js_parts[$_js_part]['code'];
+                $_js_code = $js_parts[$_js_part]['code'];
                 $_js_code_cs = md5($_js_code); // Before compression.
-                $_js_code    = $this->maybeCompressJsCode($_js_code);
+                $_js_code = $this->maybeCompressJsCode($_js_code);
 
-                $_js_code_path     = str_replace('%%code-checksum%%', $_js_code_cs, $cache_part_file_path);
-                $_js_code_url      = str_replace('%%code-checksum%%', $_js_code_cs, $cache_part_file_url);
-                $_js_code_url      = $this->hook_api->applyFilters('part_url', $_js_code_url, $for);
-                $_js_code_path_tmp = $_js_code_path.'.'.uniqid('', true).'.tmp';
+                $_js_code_path = str_replace('%%code-checksum%%', $_js_code_cs, $cache_part_file_path);
+                $_js_code_url = str_replace('%%code-checksum%%', $_js_code_cs, $cache_part_file_url);
+                $_js_code_url = $this->hook_api->applyFilters('part_url', $_js_code_url, $for);
+                $_js_code_path_tmp = $_js_code_path . '.' . uniqid('', true) . '.tmp';
                 // Cache file creation is atomic; e.g. tmp file w/ rename.
 
                 if (!(file_put_contents($_js_code_path_tmp, $_js_code) && rename($_js_code_path_tmp, $_js_code_path))) {
@@ -660,10 +652,9 @@ class CompressorX extends WebSharks\HtmlCompressor\Core
                 }
 
                 if (empty($defer)) {
-                    $js_parts[$_js_part]['tag'] = '<script type="text/javascript" src="'.htmlspecialchars($_js_code_url, ENT_QUOTES, 'UTF-8').'"></script>';
-                }
-                else {
-                    $js_parts[$_js_part]['tag'] = '<script type="text/javascript" src="'.htmlspecialchars($_js_code_url, ENT_QUOTES, 'UTF-8').'" defer></script>';
+                    $js_parts[$_js_part]['tag'] = '<script type="text/javascript" src="' . htmlspecialchars($_js_code_url, ENT_QUOTES, 'UTF-8') . '"></script>';
+                } else {
+                    $js_parts[$_js_part]['tag'] = '<script type="text/javascript" src="' . htmlspecialchars($_js_code_url, ENT_QUOTES, 'UTF-8') . '" defer></script>';
                 }
 
                 unset($js_parts[$_js_part]['code']); // Ditch this; no need to cache this code too.
@@ -679,7 +670,6 @@ class CompressorX extends WebSharks\HtmlCompressor\Core
     }
 
 
-
     protected function compressHtml($html)
     {
         if (!($html = (string)$html)) {
@@ -687,6 +677,28 @@ class CompressorX extends WebSharks\HtmlCompressor\Core
         }
 
         $static = &static::$static[__FUNCTION__];
+
+        if (!isset($static['preservations'])) {
+            $static['preservations'] = [
+                'noindex_tags'            => '\<!--noindex-->(.*)<!--\/noindex-->',
+                'nocompress_tags'         => '\<!--nocompress-->(.*)<!--\/nocompress-->',
+                'special_tags'            => '\<(pre|code|script|style|textarea)(?:\s+[^>]*?)?\>.*?\<\/\\2>',
+                'ie_conditional_comments' => '\<\![^[>]*?\[if\W[^\]]*?\][^>]*?\>.*?\<\![^[>]*?\[endif\][^>]*?\>',
+                'special_attributes'      => '\s(?:style|on[a-z]+)\s*\=\s*(["\']).*?\\3',
+            ];
+            $static['preservations'] = '/(?P<preservation>' . implode('|', $static['preservations']) . ')/uis';
+
+            if (preg_match_all($static['preservations'], $html, $preservation_matches, PREG_SET_ORDER)) {
+                foreach ($preservation_matches as $_preservation_match_key => $_preservation_match) {
+                    $preservations[] = $_preservation_match['preservation'];
+                    $preservation_placeholders[] = '%%minify-html-' . $_preservation_match_key . '%%';
+                }
+                if (isset($preservations, $preservation_placeholders)) {
+                    $html = $this->replaceOnce($preservations, $preservation_placeholders, $html);
+                }
+            }
+        }
+
         if (!isset($static['compressions'], $static['compress_with'])) {
 
             $static['compressions']['remove_html_comments'] = '/\<\!\-{2}.*?\-{2}\>/uis';
@@ -699,6 +711,10 @@ class CompressorX extends WebSharks\HtmlCompressor\Core
             $static['compress_with']['remove_extra_whitespace_in_self_closing_tags'] = '/>';
         }
         $html = preg_replace($static['compressions'], $static['compress_with'], $html);
+
+        if (isset($preservations, $preservation_placeholders)) {
+            $html = $this->replaceOnce($preservation_placeholders, $preservations, $html);
+        }
 
         return $html ? trim($html) : $html;
     }
