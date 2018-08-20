@@ -559,7 +559,7 @@ class CompressorX extends WebSharks\HtmlCompressor\Core
         return $html; // With possible compression having been applied here.
     }
 
-    protected function compileJsTagFragsIntoParts(array $js_tag_frags, $for, $defer = false)
+    public function compileJsTagFragsIntoParts(array $js_tag_frags, $for, $defer = false)
     {
         $for = (string)$for; // Force string.
         $js_parts = []; // Initialize.
@@ -669,6 +669,10 @@ class CompressorX extends WebSharks\HtmlCompressor\Core
         return $js_parts;
     }
 
+    public function compileCssTagFragsIntoParts(array $css_tag_frags, $for)
+    {
+        return parent::compileCssTagFragsIntoParts($css_tag_frags, $for);
+    }
 
     protected function compressHtml($html)
     {

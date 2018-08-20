@@ -17,4 +17,10 @@ switch ($modx->event->name) {
     case 'OnSiteRefresh':
         $Compressor->clearFileCache();
         break;
+    case 'OnMODXInit':
+        $Compressor->injectMap();
+        break;
+    case 'OnDocFormPrerender':
+        $Compressor->injectJs();
+        break;
 }

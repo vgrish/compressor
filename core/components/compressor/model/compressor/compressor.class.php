@@ -15,22 +15,22 @@ class Compressor
 {
     /* @var modX $modx */
     public $modx;
-    /** @var Compressor $compressor */
-    public $compressor;
+    /** @var Compressor $client */
+    public $client;
     /** @var mixed|null $namespace */
     public $namespace = 'compressor';
     /** @var string $version */
     public $version = '1.0.13-beta';
 
     /** @var array $config */
-    public $config = array();
+    public $config = [];
     /** @var array $options */
     public $options = array(
         'cache_dir_public'  => '{assets_path}components/compressor/.~cache/public',
         'cache_dir_private' => '{core_path}cache/default/compressor/.~cache/private',
     );
     /** @var array $initialized */
-    public $initialized = array();
+    public $initialized = [];
 
     /**
      * @param       $n
@@ -45,15 +45,19 @@ class Compressor
      * @param modX $modx
      * @param array $config
      */
-    function __construct(modX &$modx, array $config = array())
+    function __construct(modX &$modx, array $config = [])
     {
         $this->modx =& $modx;
 
         $corePath = $this->getOption('core_path', $config, MODX_CORE_PATH . 'components/compressor/');
+        $assetsUrl = $this->getOption('assets_url', $config, MODX_ASSETS_URL . 'components/compressor/');
+
         $this->config = array_merge(array(
             'namespace' => $this->namespace,
             'corePath'  => $corePath,
             'modelPath' => $corePath . 'model/',
+            'cssUrl'    => $assetsUrl . 'css/',
+            'jsUrl'     => $assetsUrl . 'js/',
             'showLog'   => false,
         ), $config);
     }
@@ -65,7 +69,7 @@ class Compressor
      *
      * @return mixed|null
      */
-    public function getOption($key, $config = array(), $default = null, $skipEmpty = false)
+    public function getOption($key, $config = [], $default = null, $skipEmpty = false)
     {
         $option = $default;
         if (!empty($key) AND is_string($key)) {
@@ -98,7 +102,7 @@ class Compressor
         ), $path);
     }
 
-    public function initialize($ctx = 'web', array $scriptProperties = array())
+    public function initialize($ctx = 'web', array $scriptProperties = [])
     {
         if (isset($this->initialized[$ctx])) {
             return $this->initialized[$ctx];
@@ -138,7 +142,7 @@ class Compressor
 
     public function clearFileCache()
     {
-        $options = array();
+        $options = [];
         foreach (array('cache_dir_public', 'cache_dir_private') as $k) {
             $options[$k] = $this->translatePath($this->options[$k]);
         }
@@ -151,14 +155,14 @@ class Compressor
 
     }
 
-    public function getCompressor($options = array())
+    public function getClient($options = [])
     {
-        if (!$this->compressor) {
+        if (!$this->client) {
             try {
                 if (!class_exists('CompressorX')) {
                     require 'compressorx.class.php';
                 }
-                $this->compressor = new CompressorX($this, $options);
+                $this->client = new CompressorX($this, $options);
             } catch (CompressorException $e) {
                 $this->modx->log(xPDO::LOG_LEVEL_ERROR, $e->getMessage());
 
@@ -166,10 +170,10 @@ class Compressor
             }
         }
 
-        return $this->compressor;
+        return $this->client;
     }
 
-    public function resourceCompress(modResource $resource, $options = array())
+    public function resourceCompress(modResource $resource, $options = [])
     {
         if ($resource->contentType !== 'text/html' OR $resource->deleted) {
             return $resource->_output;
@@ -186,7 +190,7 @@ class Compressor
         }
 
         if ($compress) {
-            $resource->_output = $this->htmlCompress($resource->_output, $options);
+            $resource->_output = $this->outputCompress($resource->_output, $options);
         }
 
         $this->modx->invokeEvent('compressorOnResourceCompress', array(
@@ -197,64 +201,116 @@ class Compressor
         return $resource->_output;
     }
 
-    public function htmlCompress($html = '', $options = array())
+    public function outputCompress($output = '', $options = [])
     {
-        if (!$compressor = $this->getCompressor($options)) {
-            return $html;
+        if (!$client = $this->getClient($options)) {
+            return $output;
         }
 
         $tagFooterCss = "<!-- footer-css -->";
         $tagFooterScript = "<!-- footer-scripts -->";
 
         // process css
-        $cssClient = '';
         $cssAdd = '';
-
-        $isFooterCss = preg_match_all("#{$tagFooterCss}(.*){$tagFooterCss}#Usi", $html, $matchScripts);
+        $isFooterCss = preg_match_all("#{$tagFooterCss}(.*){$tagFooterCss}#Usi", $output, $matchScripts);
         if ($isFooterCss) {
             foreach ($matchScripts[0] as $idx => $matchScript) {
-                $html = str_replace(
+                $output = str_replace(
                     $matchScript,
                     "",
-                    $html
+                    $output
                 );
                 $cssAdd .= $matchScripts[1][$idx];
             }
         }
-        if (!empty($cssClient)) {
-            $cssClient .= "\n";
-        }
 
         // process js
-        $scriptsClient = $this->modx->getRegisteredClientScripts();
         $scriptsAdd = '';
-
-        $isFooterScript = preg_match_all("#{$tagFooterScript}(.*){$tagFooterScript}#Usi", $html, $matchScripts);
+        $isFooterScript = preg_match_all("#{$tagFooterScript}(.*){$tagFooterScript}#Usi", $output, $matchScripts);
         if ($isFooterScript) {
             foreach ($matchScripts[0] as $idx => $matchScript) {
-                $html = str_replace(
+                $output = str_replace(
                     $matchScript,
                     "",
-                    $html
+                    $output
                 );
                 $scriptsAdd .= $matchScripts[1][$idx];
             }
         }
 
+        $cssClient = '';
+        if (!empty($cssClient)) {
+            $cssClient .= "\n";
+        }
+
+        $scriptsClient = $this->modx->getRegisteredClientScripts();
         if (!empty($scriptsClient)) {
             $scriptsClient .= "\n";
         }
-        $html = str_replace(
+
+        $output = str_replace(
             $scriptsClient . "</body>",
             $tagFooterCss . $cssAdd . $cssClient . $tagFooterCss . "\n" .
             $tagFooterScript . $scriptsAdd . $scriptsClient . $tagFooterScript . "\n</body>",
-            $html
+            $output
         );
 
-        return $compressor->compress($html);
+        return $client->compress($output);
     }
 
-    public function cssCompress($css = '', $options = array())
+    public function jsCompressToHtml(array $js_tag_frags, $for = 'foot')
+    {
+        $html = '';
+        if (!$client = $this->getClient()) {
+            return $html;
+        }
+
+        try {
+            if ($js_parts = $client->compileJsTagFragsIntoParts($js_tag_frags, $for, false)) {
+                $compressed_js_tags = [];
+                foreach ($js_parts as $_js_part) {
+                    if (isset($_js_part['exclude_frag'], $js_tag_frags[$_js_part['exclude_frag']]['all'])) {
+                        $compressed_js_tags[] = $js_tag_frags[$_js_part['exclude_frag']]['all'];
+                    } else {
+                        $compressed_js_tags[] = $_js_part['tag'];
+                    }
+                }
+                $html = implode("\n", $compressed_js_tags);
+            }
+        } catch (\Exception $e) {
+            $this->modx->log(modX::LOG_LEVEL_ERROR, print_r($e->getMessage(), 1));
+        }
+
+        return $html;
+    }
+
+    public function cssCompressToHtml(array $css_tag_frags, $for = 'foot')
+    {
+        $html = '';
+        if (!$client = $this->getClient()) {
+            return $html;
+        }
+
+        try {
+            if ($css_parts = $client->compileCssTagFragsIntoParts($css_tag_frags, $for)) {
+                $compressed_css_tags = [];
+                foreach ($css_parts as $_css_part) {
+                    if (isset($_css_part['exclude_frag'], $css_tag_frags[$_css_part['exclude_frag']]['all'])) {
+                        $compressed_css_tags[] = $css_tag_frags[$_css_part['exclude_frag']]['all'];
+                    } else {
+                        $compressed_css_tags[] = $_css_part['tag'];
+                    }
+                }
+                $html = implode("\n", $compressed_css_tags);
+            }
+        } catch (\Exception $e) {
+            $this->modx->log(modX::LOG_LEVEL_ERROR, print_r($e->getMessage(), 1));
+        }
+
+        return $html;
+    }
+
+    public function cssCompress($css = '', $options = [])
     {
         if ($cssCompressor = new \WebSharks\CssMinifier\Core('')) {
             return $cssCompressor->compress($css);
@@ -263,7 +319,7 @@ class Compressor
         return $css;
     }
 
-    public function jsCompress($js = '', $options = array())
+    public function jsCompress($js = '', $options = [])
     {
         if ($jsCompressor = new \WebSharks\JsMinifier\Core('')) {
             return $jsCompressor->compress($js);
@@ -272,4 +328,26 @@ class Compressor
         return $js;
     }
 
+    public function injectMap()
+    {
+        if ($this->modx->loadClass('modResource')) {
+            $this->modx->map['modResource']['fields']['compress'] = 1;
+            $this->modx->map['modResource']['fieldMeta']['compress'] = [
+                'dbtype'     => 'tinyint',
+                'precision'  => 1,
+                'attributes' => 'unsigned',
+                'phptype'    => 'bool',
+                'null'       => true,
+                'default'    => 1,
+            ];
+        }
+    }
+
+    public function injectJs()
+    {
+        /** @var modManagerController $controller */
+        if ($controller = &$this->modx->controller) {
+            $controller->addLastJavascript($this->config['jsUrl'] . 'mgr/resource/inject/inject.js');
+        }
+    }
 }

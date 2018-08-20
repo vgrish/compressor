@@ -5,6 +5,8 @@ Changelog for Compressor
 - Add "resourceCompress" [Compressor]
 - Added new events: "compressorOnBeforeResourceCompress", "compressorOnResourceCompress"
 - Added new tags: "<!--noindex--><!--/noindex-->", "<!--nocompress--><!--/nocompress-->"
+- Add "compress" snippet
+- Add "compress" checkbox
 
 1.0.12-beta (14.09.2017)
 ==============
