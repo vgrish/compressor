@@ -1,5 +1,9 @@
 Changelog for Compressor
 
+1.0.14-beta (21.08.2018)
+==============
+- Change the "compress" field to "compressed"
+
 1.0.13-beta (20.08.2018)
 ==============
 - Add "resourceCompress" [Compressor]

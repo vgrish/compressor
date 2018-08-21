@@ -13,13 +13,13 @@ Ext.override(compressorOverride, {
         if (!config.record.contentType || config.record.contentType === 'text/html') {
             originals.push({
                 xtype: 'xcheckbox',
-                boxLabel: _('resource_compress'),
-                description: '<b>[[*compress]]</b><br />' + _('resource_compress_help'),
+                boxLabel: _('resource_compressed'),
+                description: '<b>[[*compressed]]</b><br />' + _('resource_compressed_help'),
                 hideLabel: true,
-                name: 'compress',
-                id: 'modx-resource-compress',
+                name: 'compressed',
+                id: 'modx-resource-compressed',
                 inputValue: 1,
-                checked: parseInt(config.record.compress) || 1,
+                checked: parseInt(config.record.compressed) || 1,
                 convertValue: function (v) {
                     return (
                         v === '1' || v === true || v === 'true' ||

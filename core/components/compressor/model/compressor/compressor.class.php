@@ -20,7 +20,7 @@ class Compressor
     /** @var mixed|null $namespace */
     public $namespace = 'compressor';
     /** @var string $version */
-    public $version = '1.0.13-beta';
+    public $version = '1.0.14-beta';
 
     /** @var array $config */
     public $config = [];
@@ -184,12 +184,12 @@ class Compressor
             'resource'   => &$resource,
         ));
 
-        $compress = $resource->get('compress');
-        if ($compress === null) {
-            $compress = $this->getOption('compress_resource', null);
+        $compressed = $resource->get('compressed');
+        if ($compressed === null) {
+            $compressed = $this->getOption('compress_resource', null);
         }
 
-        if ($compress) {
+        if ($compressed) {
             $resource->_output = $this->outputCompress($resource->_output, $options);
         }
 
@@ -331,8 +331,8 @@ class Compressor
     public function injectMap()
     {
         if ($this->modx->loadClass('modResource')) {
-            $this->modx->map['modResource']['fields']['compress'] = 1;
-            $this->modx->map['modResource']['fieldMeta']['compress'] = [
+            $this->modx->map['modResource']['fields']['compressed'] = 1;
+            $this->modx->map['modResource']['fieldMeta']['compressed'] = [
                 'dbtype'     => 'tinyint',
                 'precision'  => 1,
                 'attributes' => 'unsigned',

@@ -22,7 +22,7 @@ switch ($options[xPDOTransport::PACKAGE_ACTION]) {
         $manager = $modx->getManager();
         $level = $modx->getLogLevel();
         $modx->setLogLevel(xPDO::LOG_LEVEL_FATAL);
-        $manager->addField('modResource', 'compress');
+        $manager->addField('modResource', 'compressed');
         $modx->setLogLevel($level);
 
         break;
