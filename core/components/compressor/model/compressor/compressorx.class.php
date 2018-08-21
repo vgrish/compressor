@@ -138,10 +138,12 @@ class CompressorX extends WebSharks\HtmlCompressor\Core
             $path = str_replace($baseUrl, '', $path);
             $path = $basePath . trim($path, '/');
 
-            if (false === ($css = @file_get_contents($path))) {
-            } else {
+            if ($css = file_get_contents($path)) {
                 $css = preg_replace("'<html[^>]*?>.*?</html>'si", "", $css);
                 $code .= $css;
+            }
+            else {
+                $this->modx->log(modX::LOG_LEVEL_ERROR, '[' . __CLASS__ . ']' . sprintf('Unable to get file: `%1$s`.', $path));
             }
         }
 
@@ -159,10 +161,12 @@ class CompressorX extends WebSharks\HtmlCompressor\Core
             $path = str_replace($baseUrl, '', $path);
             $path = $basePath . trim($path, '/');
 
-            if (false === ($js = @file_get_contents($path))) {
-            } else {
+            if ($js = file_get_contents($path)) {
                 $js = preg_replace("'<html[^>]*?>.*?</html>'si", "", $js);
                 $code .= $js;
+            }
+            else {
+                $this->modx->log(modX::LOG_LEVEL_ERROR, '[' . __CLASS__ . ']' . sprintf('Unable to get file: `%1$s`.', $path));
             }
         }
 
